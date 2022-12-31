@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/base_navigation"
+    app:startDestination="@id/currencyFragment">
+
+    <fragment
+        android:id="@+id/currencyFragment"
+        android:name="com.example.currencyexchangeapp.view.fragment.CurencyFragment"
+        android:label="fragment_curency"
+        tools:layout="@layout/fragment_curency" />
+
+    <fragment
+        android:id="@+id/myCurrencyFragment"
+        android:name="com.example.currencyexchangeapp.view.fragment.MyCurencyFragment"
+        android:label="fragment_my_curency"
+        tools:layout="@layout/fragment_my_curency" />
+</navigation>
