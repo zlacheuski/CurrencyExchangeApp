@@ -38,12 +38,9 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideApi(): CurrencyExchangeAPI =
-        Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .client(provideToHttpClient(provideLoggingInterceptor()))
-            .addConverterFactory(GsonConverterFactory.create())
-            .addCallAdapterFactory(CoroutineCallAdapterFactory())
-            .build()
-            .create(CurrencyExchangeAPI::class.java)
+    fun provideApi(): CurrencyExchangeAPI = Retrofit.Builder().baseUrl(BASE_URL)
+        .client(provideToHttpClient(provideLoggingInterceptor()))
+        .addConverterFactory(GsonConverterFactory.create())
+        .addCallAdapterFactory(CoroutineCallAdapterFactory()).build()
+        .create(CurrencyExchangeAPI::class.java)
 }

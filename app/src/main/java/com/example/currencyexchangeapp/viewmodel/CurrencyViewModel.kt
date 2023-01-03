@@ -9,11 +9,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import okhttp3.ResponseBody
 import javax.inject.Inject
 
 @HiltViewModel
-class CurrencyViewModel @Inject constructor(val repository: CurrencyRepository) : ViewModel() {
+class CurrencyViewModel @Inject constructor(private val repository: CurrencyRepository) : ViewModel() {
 
     private val _response =
         MutableStateFlow<Resource<LatestCurrencyModel>>(Resource.Progress())

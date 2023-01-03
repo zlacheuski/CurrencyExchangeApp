@@ -14,21 +14,21 @@ open class BaseRepository {
             funs.await().let { resp ->
                 resp.body().let { body ->
                     if (body != null) {
-                        emit(Resource.Success<T>(body))
+                        emit(Resource.Success(body))
                     } else {
-                            resp.errorBody()?.let {
-                                emit(
-                                    Resource.Error<T>(it.toString())
-                                )
-                            }
+                        resp.errorBody()?.let {
+                            emit(
+                                Resource.Error(it.toString())
+                            )
                         }
                     }
-
                 }
+
+            }
         } catch (e: Exception) {
             e.printStackTrace()
             emit(
-                Resource.Error<T>(
+                Resource.Error(
                     e.toString()
                 )
             )

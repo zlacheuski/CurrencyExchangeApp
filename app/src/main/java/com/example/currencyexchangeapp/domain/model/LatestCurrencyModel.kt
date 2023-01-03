@@ -7,8 +7,9 @@ data class LatestCurrencyModel(
     val rates: Map<String, Double>,
     @SerializedName("success")
     val success: Boolean
-){
-    val ratesList: List<Rates> = rates.map { Rates(it.key, it.value) }
+) {
+    val ratesList: MutableList<Rates>
+        get() = rates.map { Rates(it.key, it.value) }.sortedBy { it.rateName }.toMutableList()
 
     data class Rates(
         val rateName: String,

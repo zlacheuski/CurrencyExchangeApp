@@ -7,8 +7,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.currencyexchangeapp.databinding.FragmentCurencyBinding
 import com.example.currencyexchangeapp.domain.model.Resource
+import com.example.currencyexchangeapp.view.adapter.CurrencyAdapter
 import com.example.currencyexchangeapp.viewmodel.CurrencyViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -18,15 +21,17 @@ import timber.log.Timber
 class CurrencyFragment : Fragment() {
 
     private val viewModel: CurrencyViewModel by viewModels()
-    lateinit var binding: FragmentCurencyBinding
+    private lateinit var binding: FragmentCurencyBinding
+    private var currencyAdapter: CurrencyAdapter? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        collectUserDetailsData()
-        viewModel.getLatestCurrency()
+        collectCurrencies()
+        getCurrencies()
         initBinding()
+        initRecyclerView()
         return binding.root
     }
 
@@ -34,12 +39,23 @@ class CurrencyFragment : Fragment() {
         binding = FragmentCurencyBinding.inflate(layoutInflater)
     }
 
-    private fun collectUserDetailsData() {
+    private fun initRecyclerView() {
+        currencyAdapter = CurrencyAdapter()
+        val llm = LinearLayoutManager(activity?.baseContext)
+        llm.orientation = RecyclerView.VERTICAL
+        binding.recyclerView.adapter = currencyAdapter
+        binding.recyclerView.layoutManager = llm
+    }
+
+    private fun getCurrencies() = viewModel.getLatestCurrency()
+
+    private fun collectCurrencies() {
         lifecycleScope.launch {
             viewModel.response.collect {
                 when (it) {
                     is Resource.Success -> {
-                        Timber.d("Success: ${it.data}")
+                        Timber.d("Success: ${it.data.ratesList}")
+                        currencyAdapter?.addDataToAdapter(it.data.ratesList)
                     }
                     is Resource.Progress -> {
                         Timber.d("Progress")
