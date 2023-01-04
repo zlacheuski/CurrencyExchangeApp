@@ -1,5 +1,6 @@
 package com.example.currencyexchangeapp.domain.model
 
+import com.example.currencyexchangeapp.db.entity.Rates
 import com.google.gson.annotations.SerializedName
 
 data class LatestCurrencyModel(
@@ -9,10 +10,5 @@ data class LatestCurrencyModel(
     val success: Boolean
 ) {
     val ratesList: MutableList<Rates>
-        get() = rates.map { Rates(it.key, it.value) }.sortedBy { it.rateName }.toMutableList()
-
-    data class Rates(
-        val rateName: String,
-        val rateValue: Double
-    )
+        get() = rates.map { Rates(it.key, it.value) }.toMutableList()
 }

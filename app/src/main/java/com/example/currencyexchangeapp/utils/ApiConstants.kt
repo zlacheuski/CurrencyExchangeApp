@@ -1,5 +1,5 @@
 package com.example.currencyexchangeapp.utils
 
-object ApiUtil {
+object ApiConstants {
     const val BASE_URL = "https://api.exchangerate.host"
 }

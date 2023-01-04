@@ -1,7 +1,7 @@
 package com.example.currencyexchangeapp.domain.repository.latest_currencies
 
 import com.example.currencyexchangeapp.domain.model.LatestCurrencyModel
-import com.example.currencyexchangeapp.domain.model.Resource
+import com.example.currencyexchangeapp.domain.model.states.Resource
 import kotlinx.coroutines.flow.Flow
 
 interface ICurrencyRepository {

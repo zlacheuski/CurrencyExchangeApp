@@ -4,18 +4,20 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.currencyexchangeapp.databinding.ItemCurrencyBinding
-import com.example.currencyexchangeapp.domain.model.LatestCurrencyModel
+import com.example.currencyexchangeapp.db.dao.ICurrencyDAO
+import com.example.currencyexchangeapp.db.entity.Rates
+import timber.log.Timber
 
-private typealias Rate = LatestCurrencyModel.Rates
+class CurrencyAdapter(private val dao: ICurrencyDAO) :
+    RecyclerView.Adapter<CurrencyAdapter.CurrencyHolder>() {
 
-class CurrencyAdapter : RecyclerView.Adapter<CurrencyAdapter.CurrencyHolder>() {
-
-    lateinit var binding : ItemCurrencyBinding
-    private val currencyList: MutableList<Rate> = mutableListOf()
+    lateinit var binding: ItemCurrencyBinding
+    private val currencyList: MutableList<Rates> = mutableListOf()
+    private val favCurrencyList: MutableList<Rates> = mutableListOf()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CurrencyHolder {
         initBinding(parent)
-        return CurrencyHolder()
+        return CurrencyHolder(binding)
     }
 
     override fun onBindViewHolder(holder: CurrencyHolder, position: Int) {
@@ -26,20 +28,37 @@ class CurrencyAdapter : RecyclerView.Adapter<CurrencyAdapter.CurrencyHolder>() {
 
     override fun getItemViewType(position: Int): Int = position
 
-    private fun initBinding(parent: ViewGroup){
+    fun addDataToAdapter(commonList: MutableList<Rates>, favouriteList: MutableList<Rates>) {
+        currencyList.clear()
+        favCurrencyList.clear()
+        currencyList.addAll(filterItems(commonList, favouriteList))
+        Timber.d("$currencyList")
+        favCurrencyList.addAll(favouriteList)
+        this.notifyDataSetChanged()
+    }
+
+    private fun initBinding(parent: ViewGroup) {
         binding = ItemCurrencyBinding.inflate(LayoutInflater.from(parent.context), parent, false)
     }
 
-    fun addDataToAdapter(list: MutableList<Rate>) {
-        this.currencyList.clear()
-        this.currencyList.addAll(list)
-        notifyDataSetChanged()
-    }
+    private fun filterItems(commonList: MutableList<Rates>, favouriteList: MutableList<Rates>) =
+        favouriteList.filter { it in commonList }
+            .toMutableList()
+            .also { it.addAll(commonList.filter { it !in favouriteList }) }
 
-    inner class CurrencyHolder : RecyclerView.ViewHolder(binding.root) {
+    inner class CurrencyHolder(val binding: ItemCurrencyBinding) : RecyclerView.ViewHolder(binding.root) {
 
-        fun init(currencyList: Rate) {
-            binding.itemTv.text = "${currencyList.rateName} is ${currencyList.rateValue}"
+        fun init(rate: Rates) {
+            with(binding) {
+                itemTv.text = "${rate.rateName} is ${rate.rateValue}"
+                if (rate in favCurrencyList) {
+                    currencyActionBtn.text = "Remove"
+                    currencyActionBtn.setOnClickListener { dao.deleteFavouriteCurrency(rate) }
+                } else {
+                    currencyActionBtn.text = "Add"
+                    currencyActionBtn.setOnClickListener { dao.insertFavouriteRate(rate) }
+                }
+            }
         }
     }
 }

@@ -1,6 +1,6 @@
 package com.example.currencyexchangeapp.domain.repository
 
-import com.example.currencyexchangeapp.domain.model.Resource
+import com.example.currencyexchangeapp.domain.model.states.Resource
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow

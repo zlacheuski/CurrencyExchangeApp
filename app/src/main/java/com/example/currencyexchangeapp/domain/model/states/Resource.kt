@@ -1,4 +1,4 @@
-package com.example.currencyexchangeapp.domain.model
+package com.example.currencyexchangeapp.domain.model.states
 
 sealed class Resource<T> {
     data class Success<T>(val data: T) : Resource<T>()
