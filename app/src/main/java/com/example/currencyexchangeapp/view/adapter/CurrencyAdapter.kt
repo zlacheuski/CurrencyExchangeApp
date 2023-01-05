@@ -12,8 +12,9 @@ class CurrencyAdapter(private val dao: ICurrencyDAO) :
     RecyclerView.Adapter<CurrencyAdapter.CurrencyHolder>() {
 
     lateinit var binding: ItemCurrencyBinding
-    private val currencyList: MutableList<Rates> = mutableListOf()
-    private val favCurrencyList: MutableList<Rates> = mutableListOf()
+    val rateList: MutableList<Rates> = mutableListOf()
+    val favouriteRateList: MutableList<Rates> = mutableListOf()
+    val searchRateList: MutableList<Rates> = mutableListOf()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CurrencyHolder {
         initBinding(parent)
@@ -21,19 +22,24 @@ class CurrencyAdapter(private val dao: ICurrencyDAO) :
     }
 
     override fun onBindViewHolder(holder: CurrencyHolder, position: Int) {
-        holder.init(currencyList[position])
+        holder.init(rateList[position])
     }
 
-    override fun getItemCount(): Int = currencyList.size
+    override fun getItemCount(): Int = rateList.size
 
     override fun getItemViewType(position: Int): Int = position
 
     fun addDataToAdapter(commonList: MutableList<Rates>, favouriteList: MutableList<Rates>) {
-        currencyList.clear()
-        favCurrencyList.clear()
-        currencyList.addAll(filterItems(commonList, favouriteList))
-        Timber.d("$currencyList")
-        favCurrencyList.addAll(favouriteList)
+        rateList.clear()
+        favouriteRateList.clear()
+        rateList.addAll(filterItems(commonList, favouriteList))
+        favouriteRateList.addAll(favouriteList)
+        this.notifyDataSetChanged()
+    }
+
+    fun searchData(commonList: MutableList<Rates>, favouriteList: MutableList<Rates>) {
+        rateList.clear()
+        rateList.addAll(filterItems(commonList, favouriteList))
         this.notifyDataSetChanged()
     }
 
@@ -46,12 +52,13 @@ class CurrencyAdapter(private val dao: ICurrencyDAO) :
             .toMutableList()
             .also { it.addAll(commonList.filter { it !in favouriteList }) }
 
-    inner class CurrencyHolder(val binding: ItemCurrencyBinding) : RecyclerView.ViewHolder(binding.root) {
+    inner class CurrencyHolder(val binding: ItemCurrencyBinding) :
+        RecyclerView.ViewHolder(binding.root) {
 
         fun init(rate: Rates) {
             with(binding) {
                 itemTv.text = "${rate.rateName} is ${rate.rateValue}"
-                if (rate in favCurrencyList) {
+                if (rate in favouriteRateList) {
                     currencyActionBtn.text = "Remove"
                     currencyActionBtn.setOnClickListener { dao.deleteFavouriteCurrency(rate) }
                 } else {
