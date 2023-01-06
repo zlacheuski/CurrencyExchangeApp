@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewModelScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.currencyexchangeapp.R
@@ -18,36 +19,40 @@ import com.example.currencyexchangeapp.db.entity.Rates
 import com.example.currencyexchangeapp.domain.model.states.Resource
 import com.example.currencyexchangeapp.extension.onSearchTextChanged
 import com.example.currencyexchangeapp.view.adapter.CurrencyAdapter
-import com.example.currencyexchangeapp.viewmodel.CurrencyViewModel
+import com.example.currencyexchangeapp.viewmodel.RateViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 @AndroidEntryPoint
 class CurrencyFragment : Fragment() {
 
-    private val viewModel: CurrencyViewModel by viewModels()
+    private val viewModel: RateViewModel by viewModels()
     private lateinit var binding: FragmentCurencyBinding
     private var currencyAdapter: CurrencyAdapter? = null
-    private var menu: MenuHost? = null
+    private var menuHost: MenuHost? = null
+    private var menuItem: MenuItem? = null
+    private val ratesList: MutableList<Rates> = mutableListOf()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         initMenu()
         initMenuProvider()
+        collectCurrencies()
+        collectCurrenciesFromDB()
     }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        collectCurrenciesFromDB()
-        collectCurrencies()
         initBinding()
         initRecyclerView()
-        getCurrencies()
+        getRatesFromDB()
         return binding.root
     }
 
@@ -56,46 +61,53 @@ class CurrencyFragment : Fragment() {
     }
 
     private fun initMenu() {
-        menu = requireActivity()
+        menuHost = requireActivity()
     }
 
     private fun createAdapterDelegateImp() = object : ICurrencyDAO {
-        override fun getFavouriteCurrency(): Flow<List<Rates>> =
-            viewModel.favouriteCurrency
 
-        override fun insertFavouriteRate(entity: Rates) =
-            viewModel.insertRateToFavourites(entity)
+        override fun getRates(): Flow<List<Rates>> = viewModel.dbRates
 
-        override fun deleteFavouriteCurrency(entity: Rates) =
-            viewModel.deleteRateFromFavourites(entity)
+        override fun getRatesNotFlow(): List<Rates> = viewModel.getRatesDB()
+
+        override fun updateRateState(rateName: String, isLiked: Boolean) {
+            viewModel.updateRateState(rateName, isLiked)
+            menuItem?.collapseActionView()
+        }
+        override fun getRatesByName(searchQuery: String): List<Rates> =
+            viewModel.getRatesByName(searchQuery)
+
+        override fun insertRate(ratesList: List<Rates>) = viewModel.insertRates(ratesList)
+
+        override fun updateRates(ratesList: List<Rates>) =
+            viewModel.updateRates(ratesList)
     }
 
-    private fun MutableList<Rates>.filterRatesByName(text: String): MutableList<Rates> =
-        this.filter { rate -> rate.rateName.startsWith(text) }.toMutableList()
+    private fun searchCurrency(query: String) {
+        GlobalScope.launch(Dispatchers.IO) {
+            viewModel.getRatesByName(query).let { allRates ->
+                withContext(Dispatchers.Main) {
+                    currencyAdapter?.addDataToAdapter(allRates.map {
+                        Rates(it.rateName, it.rateValue, it.isLiked)
+                    })
+                }
+            }
+        }
+    }
 
     private fun initMenuProvider() {
-        Timber.d("$menu")
-        menu?.addMenuProvider(object : MenuProvider {
+        menuHost?.addMenuProvider(object : MenuProvider {
+
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menuInflater.inflate(R.menu.toolbar_menu, menu)
             }
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                Timber.d("$menu")
                 return when (menuItem.itemId) {
                     R.id.searchItem -> {
+                        this@CurrencyFragment.menuItem = menuItem
                         (menuItem.actionView as SearchView).onSearchTextChanged {
-                            val searchResult =
-                                currencyAdapter?.rateList?.filterRatesByName(it) ?: mutableListOf()
-                            val favouriteSearchResult =
-                                currencyAdapter?.favouriteRateList?.filterRatesByName(it)
-                                    ?: mutableListOf()
-                            Timber.d("*** $menu")
-
-                            currencyAdapter?.searchData(
-                                searchResult,
-                                favouriteSearchResult
-                            )
+                            searchCurrency(query = it)
                         }
                         true
                     }
@@ -113,33 +125,45 @@ class CurrencyFragment : Fragment() {
         binding.recyclerView.layoutManager = llm
     }
 
-    private fun getCurrencies() = viewModel.getLatestCurrency()
+    private fun getRates() = viewModel.getRates()
+
+    private fun getRatesFromDB() {
+        viewModel.viewModelScope.launch(Dispatchers.IO) {
+            viewModel.getRatesDB().let { rates ->
+                ratesList.addAll(rates)
+                getRates()
+            }
+        }
+    }
 
     private fun collectCurrenciesFromDB() = viewModel
-        .favouriteCurrency
+        .dbRates
+        .onEach {
+            currencyAdapter?.addDataToAdapter(it)
+        }
         .flowWithLifecycle(lifecycle)
         .launchIn(lifecycleScope)
 
     private fun collectCurrencies() {
         lifecycleScope.launch {
-            viewModel.response.collect {
-                when (it) {
+            viewModel.response.collect { state ->
+                when (state) {
                     is Resource.Success -> {
-                        Timber.d("Success: ${it.data.ratesList}")
-                        viewModel.favouriteCurrency.collect { fav ->
-                            Timber.d("Success: $fav")
-                            currencyAdapter?.addDataToAdapter(
-                                it.data.ratesList,
-                                fav.toMutableList()
-                            )
-                            currencyAdapter?.notifyDataSetChanged()
+                        Timber.d("Success: ${state.data.ratesList}")
+                        if (ratesList.isEmpty()) {
+                            viewModel.insertRates(state.data.ratesList)
+                        } else {
+                            viewModel.updateRates(state.data.ratesList)
+                            ratesList.filter { it.isLiked }.forEach {
+                                viewModel.updateRateState(it.rateName, true)
+                            }
                         }
                     }
                     is Resource.Progress -> {
                         Timber.d("Progress")
                     }
                     is Resource.Error -> {
-                        Timber.d("Error: ${it.errorData}")
+                        Timber.d("Error: ${state.errorData}")
                     }
                 }
             }

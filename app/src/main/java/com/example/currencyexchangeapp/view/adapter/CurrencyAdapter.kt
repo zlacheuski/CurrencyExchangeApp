@@ -13,8 +13,6 @@ class CurrencyAdapter(private val dao: ICurrencyDAO) :
 
     lateinit var binding: ItemCurrencyBinding
     val rateList: MutableList<Rates> = mutableListOf()
-    val favouriteRateList: MutableList<Rates> = mutableListOf()
-    val searchRateList: MutableList<Rates> = mutableListOf()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CurrencyHolder {
         initBinding(parent)
@@ -29,17 +27,9 @@ class CurrencyAdapter(private val dao: ICurrencyDAO) :
 
     override fun getItemViewType(position: Int): Int = position
 
-    fun addDataToAdapter(commonList: MutableList<Rates>, favouriteList: MutableList<Rates>) {
+    fun addDataToAdapter(commonList: List<Rates>) {
         rateList.clear()
-        favouriteRateList.clear()
-        rateList.addAll(filterItems(commonList, favouriteList))
-        favouriteRateList.addAll(favouriteList)
-        this.notifyDataSetChanged()
-    }
-
-    fun searchData(commonList: MutableList<Rates>, favouriteList: MutableList<Rates>) {
-        rateList.clear()
-        rateList.addAll(filterItems(commonList, favouriteList))
+        rateList.addAll(filterItems(commonList, commonList.filter { it.isLiked }.toMutableList()))
         this.notifyDataSetChanged()
     }
 
@@ -47,7 +37,7 @@ class CurrencyAdapter(private val dao: ICurrencyDAO) :
         binding = ItemCurrencyBinding.inflate(LayoutInflater.from(parent.context), parent, false)
     }
 
-    private fun filterItems(commonList: MutableList<Rates>, favouriteList: MutableList<Rates>) =
+    private fun filterItems(commonList: List<Rates>, favouriteList: List<Rates>) =
         favouriteList.filter { it in commonList }
             .toMutableList()
             .also { it.addAll(commonList.filter { it !in favouriteList }) }
@@ -58,12 +48,12 @@ class CurrencyAdapter(private val dao: ICurrencyDAO) :
         fun init(rate: Rates) {
             with(binding) {
                 itemTv.text = "${rate.rateName} is ${rate.rateValue}"
-                if (rate in favouriteRateList) {
+                if (rate.isLiked) {
                     currencyActionBtn.text = "Remove"
-                    currencyActionBtn.setOnClickListener { dao.deleteFavouriteCurrency(rate) }
+                    currencyActionBtn.setOnClickListener { dao.updateRateState(rate.rateName, false) }
                 } else {
                     currencyActionBtn.text = "Add"
-                    currencyActionBtn.setOnClickListener { dao.insertFavouriteRate(rate) }
+                    currencyActionBtn.setOnClickListener { dao.updateRateState(rate.rateName,true) }
                 }
             }
         }

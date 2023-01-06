@@ -5,9 +5,9 @@ import androidx.room.RoomDatabase
 import com.example.currencyexchangeapp.db.dao.ICurrencyDAO
 import com.example.currencyexchangeapp.db.entity.Rates
 
-@Database(entities = [Rates::class], version = 3)
+@Database(entities = [Rates::class], version = 5)
 abstract class CurrencyDatabase : RoomDatabase() {
-    abstract fun vocDao(): ICurrencyDAO
+    abstract fun dao(): ICurrencyDAO
 
     companion object {
         const val DB_NAME = "currency.db"

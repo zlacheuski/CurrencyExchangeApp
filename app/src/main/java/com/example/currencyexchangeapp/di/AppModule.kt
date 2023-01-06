@@ -54,6 +54,6 @@ object AppModule {
     fun provideCurrencyDB(@ApplicationContext appContext: Context): ICurrencyDAO {
         return Room
             .databaseBuilder(appContext, CurrencyDatabase::class.java, CurrencyDatabase.DB_NAME)
-            .fallbackToDestructiveMigration().build().vocDao()
+            .fallbackToDestructiveMigration().build().dao()
     }
 }
