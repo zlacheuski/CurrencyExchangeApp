@@ -1,21 +1,21 @@
 package com.example.currencyexchangeapp.domain.repository.rate_repository
 
-import com.example.currencyexchangeapp.db.dao.ICurrencyDAO
+import com.example.currencyexchangeapp.db.dao.IRateDAO
 import com.example.currencyexchangeapp.db.entity.Rates
-import com.example.currencyexchangeapp.domain.CurrencyExchangeAPI
-import com.example.currencyexchangeapp.domain.model.LatestCurrencyModel
+import com.example.currencyexchangeapp.domain.RateExchangeAPI
+import com.example.currencyexchangeapp.domain.model.LatestRateModel
 import com.example.currencyexchangeapp.domain.model.states.Resource
 import com.example.currencyexchangeapp.domain.repository.BaseRepository
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class RateRepositoryImpl @Inject constructor(
-    private val api: CurrencyExchangeAPI,
-    private val dbDao: ICurrencyDAO
+    private val api: RateExchangeAPI,
+    private val dbDao: IRateDAO
 ) : RateRepository,RateDBRepository, BaseRepository() {
 
-    override suspend fun getLatestCurrency(): Flow<Resource<LatestCurrencyModel>> =
-        callOrError(api.getLatestCurrency())
+    override suspend fun getLatestCurrency(): Flow<Resource<LatestRateModel>> =
+        callOrError(api.getLatestRate())
 
     override fun getRates(): Flow<List<Rates>> = dbDao.getRates()
 

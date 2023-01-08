@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId "com.example.currencyexchangeapp"
-        minSdk 21
+        minSdk 23
         targetSdk 32
         versionCode 1
         versionName "1.0"
@@ -66,4 +66,10 @@ dependencies {
     implementation "androidx.room:room-runtime:2.4.3"
     implementation "androidx.room:room-ktx:2.4.3"
     kapt "androidx.room:room-compiler:2.4.3"
+
+    //google
+    implementation "com.google.android.gms:play-services-location:21.0.1"
+
+    //safe shared preferences
+    implementation 'androidx.security:security-crypto-ktx:1.1.0-alpha02'
 }

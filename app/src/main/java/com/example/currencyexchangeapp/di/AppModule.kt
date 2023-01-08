@@ -4,9 +4,10 @@ import android.content.Context
 import androidx.room.Room
 import androidx.viewbinding.BuildConfig
 import com.example.currencyexchangeapp.db.CurrencyDatabase
-import com.example.currencyexchangeapp.db.dao.ICurrencyDAO
-import com.example.currencyexchangeapp.domain.CurrencyExchangeAPI
-import com.example.currencyexchangeapp.utils.ApiConstants.BASE_URL
+import com.example.currencyexchangeapp.db.dao.IRateDAO
+import com.example.currencyexchangeapp.domain.RateExchangeAPI
+import com.example.currencyexchangeapp.utils.Constants.BASE_URL
+import com.example.currencyexchangeapp.utils.EncryptedSharedPreferences
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
 import dagger.Module
 import dagger.Provides
@@ -43,17 +44,23 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideApi(): CurrencyExchangeAPI = Retrofit.Builder().baseUrl(BASE_URL)
+    fun provideApi(): RateExchangeAPI = Retrofit.Builder().baseUrl(BASE_URL)
         .client(provideToHttpClient(provideLoggingInterceptor()))
         .addConverterFactory(GsonConverterFactory.create())
         .addCallAdapterFactory(CoroutineCallAdapterFactory()).build()
-        .create(CurrencyExchangeAPI::class.java)
+        .create(RateExchangeAPI::class.java)
 
     @Singleton
     @Provides
-    fun provideCurrencyDB(@ApplicationContext appContext: Context): ICurrencyDAO {
+    fun provideCurrencyDB(@ApplicationContext appContext: Context): IRateDAO {
         return Room
             .databaseBuilder(appContext, CurrencyDatabase::class.java, CurrencyDatabase.DB_NAME)
             .fallbackToDestructiveMigration().build().dao()
+    }
+
+    @Singleton
+    @Provides
+    fun provideSharedPref(@ApplicationContext appContext: Context): EncryptedSharedPreferences {
+        return EncryptedSharedPreferences(appContext)
     }
 }

@@ -3,9 +3,10 @@ package com.example.currencyexchangeapp.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.currencyexchangeapp.db.entity.Rates
-import com.example.currencyexchangeapp.domain.model.LatestCurrencyModel
+import com.example.currencyexchangeapp.domain.model.LatestRateModel
 import com.example.currencyexchangeapp.domain.model.states.Resource
 import com.example.currencyexchangeapp.domain.repository.rate_repository.RateRepositoryImpl
+import com.example.currencyexchangeapp.utils.EncryptedSharedPreferences
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
@@ -13,12 +14,14 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class RateViewModel @Inject constructor(private val repository: RateRepositoryImpl) :
-    ViewModel() {
+class RateViewModel @Inject constructor(
+    private val repository: RateRepositoryImpl,
+    private val sp: EncryptedSharedPreferences
+) : ViewModel() {
 
     private val _response =
-        MutableStateFlow<Resource<LatestCurrencyModel>>(Resource.Progress())
-    val response: StateFlow<Resource<LatestCurrencyModel>>
+        MutableStateFlow<Resource<LatestRateModel>>(Resource.Progress())
+    val response: StateFlow<Resource<LatestRateModel>>
         get() = _response
 
     val dbRates = repository.getRates()
@@ -39,7 +42,19 @@ class RateViewModel @Inject constructor(private val repository: RateRepositoryIm
 
     fun getRatesDB() = repository.getRatesNotFlow()
 
-    fun insertRates(rates: List<Rates>){
+    fun insertRates(rates: List<Rates>) {
         viewModelScope.launch(Dispatchers.IO) { repository.insertRate(rates) }
+    }
+
+    fun addSharedPref(tag: String, value: String) {
+        sp.addPreference(tag, value)
+    }
+
+    fun removeSharedPref(tag: String) {
+        sp.remove(tag)
+    }
+
+    fun getSharedPref(tag: String): String? {
+        return sp.getPreference(tag)
     }
 }

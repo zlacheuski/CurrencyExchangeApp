@@ -3,7 +3,7 @@ package com.example.currencyexchangeapp.domain.model
 import com.example.currencyexchangeapp.db.entity.Rates
 import com.google.gson.annotations.SerializedName
 
-data class LatestCurrencyModel(
+data class LatestRateModel(
     @SerializedName("rates")
     val rates: Map<String, Double>,
     @SerializedName("success")

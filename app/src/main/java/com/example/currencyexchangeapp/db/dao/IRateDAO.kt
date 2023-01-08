@@ -9,7 +9,7 @@ import com.example.currencyexchangeapp.db.entity.Rates
 import kotlinx.coroutines.flow.Flow
 
 @Dao
-interface ICurrencyDAO {
+interface IRateDAO {
 
     @Query("SELECT * FROM Rates ORDER BY isLiked DESC;")
     fun getRates(): Flow<List<Rates>>

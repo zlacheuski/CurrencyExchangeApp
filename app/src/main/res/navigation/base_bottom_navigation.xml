@@ -7,13 +7,19 @@
 
     <fragment
         android:id="@+id/currencyFragment"
-        android:name="com.example.currencyexchangeapp.view.fragment.CurrencyFragment"
+        android:name="com.example.currencyexchangeapp.view.fragment.RateFragment"
         android:label="fragment_curency"
-        tools:layout="@layout/fragment_curency" />
+        tools:layout="@layout/fragment_rate" />
 
     <fragment
         android:id="@+id/myCurrencyFragment"
-        android:name="com.example.currencyexchangeapp.view.fragment.MyCurencyFragment"
+        android:name="com.example.currencyexchangeapp.view.fragment.LikedRateFragment"
         android:label="fragment_my_curency"
-        tools:layout="@layout/fragment_my_curency" />
+        tools:layout="@layout/fragment_liked_rate" />
+
+    <fragment
+        android:id="@+id/calculateFragment"
+        android:name="com.example.currencyexchangeapp.view.fragment.CalculateFragment"
+        android:label="fragment_calculate"
+        tools:layout="@layout/fragment_calculate" />
 </navigation>

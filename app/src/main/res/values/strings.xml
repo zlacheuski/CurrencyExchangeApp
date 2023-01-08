@@ -4,4 +4,12 @@
     <string name="all_currencies_title">All currencies</string>
     <string name="my_currencies_title">My currencies</string>
     <string name="currency_item_text">Add</string>
+    <string name="calculate_title">There you are able to convert\nyour currency using\nnewest rate</string>
+    <string name="calculate_hint">Your currency</string>
+    <string name="rate_value_hint">Value</string>
+    <string name="dialog_permission_title">Permission</string>
+    <string name="dialog_permission_default_message">Please, allow this application to use location permission</string>
+    <string name="dialog_permission_button_positive">OK</string>
+    <string name="rate_remove_text">Remove</string>
+    <string name="rate_add_text">Add</string>
 </resources>
