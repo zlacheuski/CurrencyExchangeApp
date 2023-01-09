@@ -1,4 +1,4 @@
-package com.example.currencyexchangeapp.view.adapter
+package com.example.currencyexchangeapp.ui.adapter
 
 import android.annotation.SuppressLint
 import android.view.LayoutInflater
@@ -6,10 +6,10 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.currencyexchangeapp.R
 import com.example.currencyexchangeapp.databinding.ItemRateBinding
-import com.example.currencyexchangeapp.db.dao.IRateDAO
 import com.example.currencyexchangeapp.db.entity.Rates
+import com.example.currencyexchangeapp.utils.IRateAdapter
 
-class RateAdapter(private val dao: IRateDAO, val navigateToCalculateFragment: () -> Unit) :
+class RateAdapter(private val rateAdapterImpl: IRateAdapter, val navigateToCalculateFragment: () -> Unit) :
     RecyclerView.Adapter<RateAdapter.CurrencyHolder>() {
 
     private lateinit var binding: ItemRateBinding
@@ -58,7 +58,7 @@ class RateAdapter(private val dao: IRateDAO, val navigateToCalculateFragment: ()
                     currencyActionBtn.apply {
                         text = context.getString(R.string.rate_remove_text)
                         setOnClickListener {
-                            dao.updateRateState(
+                            rateAdapterImpl.updateRateState(
                                 rate.rateName,
                                 false
                             )
@@ -68,7 +68,7 @@ class RateAdapter(private val dao: IRateDAO, val navigateToCalculateFragment: ()
                     currencyActionBtn.apply {
                     text = context.getString(R.string.rate_add_text)
                     setOnClickListener {
-                        dao.updateRateState(
+                        rateAdapterImpl.updateRateState(
                             rate.rateName,
                             true
                         )
@@ -76,6 +76,10 @@ class RateAdapter(private val dao: IRateDAO, val navigateToCalculateFragment: ()
                 }
                 }
                 currencyItemCv.setOnLongClickListener {
+                    rateAdapterImpl.apply {
+                        addToSharedPreferences(rate.rateName, rate.rateValue)
+                    }
+
                     navigateToCalculateFragment.invoke()
                     true
                 }

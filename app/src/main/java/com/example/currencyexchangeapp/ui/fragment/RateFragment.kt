@@ -1,10 +1,15 @@
-package com.example.currencyexchangeapp.view.fragment
+package com.example.currencyexchangeapp.ui.fragment
 
+import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Intent
+import android.location.Geocoder
+import android.location.Location
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.view.*
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
@@ -18,26 +23,28 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.currencyexchangeapp.R
 import com.example.currencyexchangeapp.databinding.FragmentRateBinding
-import com.example.currencyexchangeapp.db.dao.IRateDAO
 import com.example.currencyexchangeapp.db.entity.Rates
 import com.example.currencyexchangeapp.domain.model.states.Resource
 import com.example.currencyexchangeapp.extension.onSearchTextChanged
 import com.example.currencyexchangeapp.utils.Constants
+import com.example.currencyexchangeapp.utils.IRateAdapter
 import com.example.currencyexchangeapp.utils.permission.Permission
 import com.example.currencyexchangeapp.utils.permission.PermissionManager
-import com.example.currencyexchangeapp.view.activity.BaseRateActivity
-import com.example.currencyexchangeapp.view.adapter.RateAdapter
+import com.example.currencyexchangeapp.ui.activity.BaseRateActivity
+import com.example.currencyexchangeapp.ui.adapter.RateAdapter
 import com.example.currencyexchangeapp.viewmodel.RateViewModel
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.util.*
 
 
 @AndroidEntryPoint
@@ -50,7 +57,50 @@ class RateFragment : Fragment() {
     private var menuItem: MenuItem? = null
     private val ratesList: MutableList<Rates> = mutableListOf()
     private val permissionManager = PermissionManager.from(this)
+    private val fusedLocationClient: FusedLocationProviderClient
+        get() = LocationServices.getFusedLocationProviderClient(activity as BaseRateActivity)
 
+
+    private val locationResultLauncher =
+        registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { isGranted ->
+            if (isGranted) {
+                Timber.d("***active")
+                getLastKnownLocation()
+            } else {
+                Timber.d("***denied")
+                askForPermission()
+            }
+        }
+
+    @SuppressLint("MissingPermission")
+    private fun getLastKnownLocation() {
+        fusedLocationClient.lastLocation
+            .addOnSuccessListener { location: Location? ->
+                if (location != null) {
+                    val currentLocation = location.getRateCode()
+                    Timber.d("**** $currentLocation")
+                    viewModel.addSharedPref(Constants.USER_RATE_NAME, getRateCode(currentLocation) ?: "USD")
+                    Timber.d("**** ${viewModel.getSharedPref(Constants.USER_RATE_NAME)}")
+                }
+            }
+    }
+
+    private fun getRateCode(currentLocation: String?) =
+        Currency.getInstance(Locale.getAvailableLocales()
+            .filter { it.country == currentLocation }[0]
+        ).currencyCode
+
+    private fun Location.getRateCode(): String? {
+        Geocoder(activity).getFromLocation(this.latitude, this.longitude, 1).let {
+            if (it.size != 0) {
+                return it[0].countryCode
+            }else{
+                return "US"
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,7 +116,6 @@ class RateFragment : Fragment() {
         initMenu()
         initMenuProvider()
         initRecyclerView()
-        Timber.d("*** ${viewModel.getSharedPref(Constants.USER_RATE_NAME)}")
         getRatesFromDB()
         return binding.root
     }
@@ -75,7 +124,7 @@ class RateFragment : Fragment() {
         super.onStart()
         showBottomBar()
         hideBackToolbarIcon()
-        askForPermission()
+        locationResultLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
     }
 
     private fun showBottomBar() {
@@ -90,24 +139,24 @@ class RateFragment : Fragment() {
         menuHost = requireActivity()
     }
 
-    private fun createAdapterDelegateImp() = object : IRateDAO {
-
-        override fun getRates(): Flow<List<Rates>> = viewModel.dbRates
-
-        override fun getRatesNotFlow(): List<Rates> = viewModel.getRatesDB()
+    private fun createAdapterDelegateImp() = object : IRateAdapter {
 
         override fun updateRateState(rateName: String, isLiked: Boolean) {
             viewModel.updateRateState(rateName, isLiked)
             menuItem?.collapseActionView()
         }
+        override fun addToSharedPreferences(rateName: String, rateValue: Double){
+            viewModel.addSharedPref(Constants.RATE_NAME, rateName)
+            viewModel.addFloatSharedPref(Constants.RATE, rateValue.toFloat())
+        }
 
-        override fun getRatesByName(searchQuery: String): List<Rates> =
-            viewModel.getRatesByName(searchQuery)
+        override fun getFromSharedPreferences(value: String): String? {
+           return viewModel.getSharedPref(value)
+        }
 
-        override fun insertRate(ratesList: List<Rates>) = viewModel.insertRates(ratesList)
-
-        override fun updateRates(ratesList: List<Rates>) =
-            viewModel.updateRates(ratesList)
+        override fun getFloatFromSharedPreferences(value: String): Float {
+           return viewModel.getFloatSharedPref(value)
+        }
     }
 
     private fun navigateToCalculateFragment() {

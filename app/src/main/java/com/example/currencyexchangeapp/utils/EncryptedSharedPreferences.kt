@@ -7,6 +7,9 @@ import androidx.security.crypto.MasterKey
 
 class EncryptedSharedPreferences(val context: Context) {
 
+    val allPreferences: MutableMap<String, *>
+        get() = sharedPreferences.all
+
     private val masterKey = MasterKey.Builder(context)
         .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
         .build()
@@ -19,18 +22,26 @@ class EncryptedSharedPreferences(val context: Context) {
         EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
     )
 
-    fun remove(preference: String){
+    fun remove(preference: String) {
         sharedPreferences.edit(true) {
             remove(preference)
         }
     }
 
-    fun addPreference(preference: String, value: String){
+    fun addPreference(preference: String, value: String) {
         sharedPreferences.edit(true) {
             putString(preference, value)
         }
     }
 
-    fun getPreference(preference: String) = sharedPreferences.getString(preference,"")
+    fun addFloatPreference(preference: String, value: Float) {
+        sharedPreferences.edit(true) {
+            putFloat(preference, value)
+        }
+    }
+
+    fun getPreference(preference: String) = sharedPreferences.getString(preference, "")
+
+    fun getFloatPreference(preference: String) = sharedPreferences.getFloat(preference, 4f)
 
 }

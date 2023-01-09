@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".view.fragment.CalculateFragment">
+    tools:context=".ui.fragment.CalculateFragment">
 
     <TextView
         android:id="@+id/title_tv"
@@ -75,8 +75,9 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="64dp"
         android:layout_marginTop="12dp"
-        android:enabled="false"
+        android:clickable="false"
         android:hint="@string/rate_value_hint"
+        android:focusable="false"
         app:hintTextColor="@color/base_color"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -85,8 +86,9 @@
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/rate_et"
             android:layout_width="match_parent"
+            android:clickable="false"
+            android:focusable="false"
             android:layout_height="wrap_content"
-            android:enabled="false"
             android:inputType="number" />
     </com.google.android.material.textfield.TextInputLayout>
 

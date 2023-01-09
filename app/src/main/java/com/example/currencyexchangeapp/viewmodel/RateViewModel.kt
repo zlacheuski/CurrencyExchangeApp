@@ -50,11 +50,23 @@ class RateViewModel @Inject constructor(
         sp.addPreference(tag, value)
     }
 
+    fun addFloatSharedPref(tag: String, value: Float) {
+        sp.addFloatPreference(tag, value)
+    }
+
     fun removeSharedPref(tag: String) {
         sp.remove(tag)
     }
 
     fun getSharedPref(tag: String): String? {
         return sp.getPreference(tag)
+    }
+
+    fun getFloatSharedPref(tag: String): Float {
+        return sp.getFloatPreference(tag)
+    }
+
+    fun getAllPreferences(): Map<String, *>? {
+        return sp.allPreferences
     }
 }

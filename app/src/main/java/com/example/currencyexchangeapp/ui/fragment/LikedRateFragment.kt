@@ -1,4 +1,4 @@
-package com.example.currencyexchangeapp.view.fragment
+package com.example.currencyexchangeapp.ui.fragment
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -6,7 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.example.currencyexchangeapp.databinding.FragmentLikedRateBinding
-import com.example.currencyexchangeapp.view.activity.BaseRateActivity
+import com.example.currencyexchangeapp.ui.activity.BaseRateActivity
 
 class LikedRateFragment : Fragment() {
 
