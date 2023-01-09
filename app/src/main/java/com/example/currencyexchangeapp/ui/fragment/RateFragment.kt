@@ -39,6 +39,7 @@ import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -60,7 +61,6 @@ class RateFragment : Fragment() {
     private val fusedLocationClient: FusedLocationProviderClient
         get() = LocationServices.getFusedLocationProviderClient(activity as BaseRateActivity)
 
-
     private val locationResultLauncher =
         registerForActivityResult(
             ActivityResultContracts.RequestPermission()
@@ -73,34 +73,6 @@ class RateFragment : Fragment() {
                 askForPermission()
             }
         }
-
-    @SuppressLint("MissingPermission")
-    private fun getLastKnownLocation() {
-        fusedLocationClient.lastLocation
-            .addOnSuccessListener { location: Location? ->
-                if (location != null) {
-                    val currentLocation = location.getRateCode()
-                    Timber.d("**** $currentLocation")
-                    viewModel.addSharedPref(Constants.USER_RATE_NAME, getRateCode(currentLocation) ?: "USD")
-                    Timber.d("**** ${viewModel.getSharedPref(Constants.USER_RATE_NAME)}")
-                }
-            }
-    }
-
-    private fun getRateCode(currentLocation: String?) =
-        Currency.getInstance(Locale.getAvailableLocales()
-            .filter { it.country == currentLocation }[0]
-        ).currencyCode
-
-    private fun Location.getRateCode(): String? {
-        Geocoder(activity).getFromLocation(this.latitude, this.longitude, 1).let {
-            if (it.size != 0) {
-                return it[0].countryCode
-            }else{
-                return "US"
-            }
-        }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -116,7 +88,6 @@ class RateFragment : Fragment() {
         initMenu()
         initMenuProvider()
         initRecyclerView()
-        getRatesFromDB()
         return binding.root
     }
 
@@ -125,6 +96,7 @@ class RateFragment : Fragment() {
         showBottomBar()
         hideBackToolbarIcon()
         locationResultLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
+        Timber.d("****")
     }
 
     private fun showBottomBar() {
@@ -137,6 +109,35 @@ class RateFragment : Fragment() {
 
     private fun initMenu() {
         menuHost = requireActivity()
+    }
+
+
+    @SuppressLint("MissingPermission")
+    private fun getLastKnownLocation() {
+        fusedLocationClient.lastLocation
+            .addOnSuccessListener { location: Location? ->
+                if (location != null) {
+                    val currentLocation = location.getRateCode()
+                    val rateCode = getRateCode(currentLocation)
+                    viewModel.addSharedPref(Constants.USER_RATE_NAME, rateCode)
+                    getRatesFromDB(rateCode)
+                }
+            }
+    }
+
+    private fun getRateCode(currentLocation: String?) =
+        Currency.getInstance(Locale.getAvailableLocales()
+            .filter { it.country == currentLocation }[0]
+        ).currencyCode ?: "USD"
+
+    private fun Location.getRateCode(): String? {
+        Geocoder(activity).getFromLocation(this.latitude, this.longitude, 1).let {
+            if (it.size != 0) {
+                return it[0].countryCode
+            }else{
+                return "US"
+            }
+        }
     }
 
     private fun createAdapterDelegateImp() = object : IRateAdapter {
@@ -206,13 +207,14 @@ class RateFragment : Fragment() {
         binding.recyclerView.layoutManager = llm
     }
 
-    private fun getRates() = viewModel.getRates()
+    private fun getRates(rateName: String) = viewModel.getRates(rateName)
 
-    private fun getRatesFromDB() {
+    private fun getRatesFromDB(rateName: String = "USD") {
         viewModel.viewModelScope.launch(Dispatchers.IO) {
             viewModel.getRatesDB().let { rates ->
+                ratesList.clear()
                 ratesList.addAll(rates)
-                getRates()
+                getRates(rateName)
             }
         }
     }
@@ -223,6 +225,14 @@ class RateFragment : Fragment() {
         .flowWithLifecycle(lifecycle)
         .launchIn(lifecycleScope)
 
+    private fun collectCurrenciesFromDB2() {
+        lifecycleScope.launch {
+            viewModel.dbRates.collect{
+                currencyAdapter?.addDataToAdapter(it)
+            }
+        }
+    }
+
     private fun collectCurrencies() {
         lifecycleScope.launch {
             viewModel.response.collect { state ->
@@ -231,11 +241,13 @@ class RateFragment : Fragment() {
                         Timber.d("Success: ${state.data.ratesList}")
                         if (ratesList.isEmpty()) {
                             viewModel.insertRates(state.data.ratesList)
+                            viewModel.dbRates
                         } else {
                             viewModel.updateRates(state.data.ratesList)
                             ratesList.filter { it.isLiked }.forEach {
                                 viewModel.updateRateState(it.rateName, true)
                             }
+                            viewModel.dbRates
                         }
                     }
                     is Resource.Progress -> {

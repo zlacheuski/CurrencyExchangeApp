@@ -26,8 +26,8 @@ class RateViewModel @Inject constructor(
 
     val dbRates = repository.getRates()
 
-    fun getRates() {
-        viewModelScope.launch { repository.getLatestCurrency().collect { _response.emit(it) } }
+    fun getRates(rateName: String = "USD") {
+        viewModelScope.launch { repository.getLatestCurrency(rateName).collect { _response.emit(it) } }
     }
 
     fun getRatesByName(searchQuery: String) = repository.getRatesByName(searchQuery)

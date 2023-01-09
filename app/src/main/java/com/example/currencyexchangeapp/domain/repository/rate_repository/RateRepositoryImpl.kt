@@ -14,8 +14,8 @@ class RateRepositoryImpl @Inject constructor(
     private val dbDao: IRateDAO
 ) : RateRepository,RateDBRepository, BaseRepository() {
 
-    override suspend fun getLatestCurrency(): Flow<Resource<LatestRateModel>> =
-        callOrError(api.getLatestRate())
+    override suspend fun getLatestCurrency(rateName: String): Flow<Resource<LatestRateModel>> =
+        callOrError(api.getLatestRate(rateName))
 
     override fun getRates(): Flow<List<Rates>> = dbDao.getRates()
 

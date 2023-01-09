@@ -18,7 +18,7 @@ open class BaseRepository {
                     } else {
                         resp.errorBody()?.let {
                             emit(
-                                Resource.Error(it.toString())
+                                Resource.Error(it.string())
                             )
                         }
                     }
