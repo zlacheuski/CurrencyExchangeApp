@@ -26,6 +26,6 @@ interface IRateDAO {
     @Insert(onConflict = REPLACE)
     fun insertRate(ratesList: List<Rates>)
 
-    @Update()
+    @Update
     fun updateRates(ratesList: List<Rates>)
 }

@@ -26,23 +26,16 @@ class RateAdapter(private val rateAdapterImpl: IRateAdapter, val navigateToCalcu
 
     override fun getItemCount(): Int = rateList.size
 
-    override fun getItemViewType(position: Int): Int = position
-
     @SuppressLint("NotifyDataSetChanged")
     fun addDataToAdapter(commonList: List<Rates>) {
         rateList.clear()
-        rateList.addAll(filterItems(commonList, commonList.filter { it.isLiked }.toMutableList()))
+        rateList.addAll(commonList.sortedBy { !it.isLiked })
         this.notifyDataSetChanged()
     }
 
     private fun initBinding(parent: ViewGroup) {
         binding = ItemRateBinding.inflate(LayoutInflater.from(parent.context), parent, false)
     }
-
-    private fun filterItems(commonList: List<Rates>, favouriteList: List<Rates>) =
-        favouriteList.filter { it in commonList }
-            .toMutableList()
-            .also { it.addAll(commonList.filter { it !in favouriteList }) }
 
     inner class CurrencyHolder(val binding: ItemRateBinding) :
         RecyclerView.ViewHolder(binding.root) {

@@ -16,4 +16,11 @@
         tools:layout_editor_absoluteX="0dp"
         tools:listitem="@layout/item_rate" />
 
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        android:layout_gravity="center"
+        android:theme="@style/ProgressBarTheme" />
+
 </FrameLayout>

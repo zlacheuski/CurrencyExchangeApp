@@ -12,6 +12,6 @@ data class Rates (
     @ColumnInfo(name = "rateValue")
     val rateValue: Double,
     @ColumnInfo(name = "isLiked")
-    val isLiked: Boolean = false,
+    var isLiked: Boolean = false,
 )
 

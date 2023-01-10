@@ -20,6 +20,7 @@
             android:name=".ui.activity.BaseRateActivity"
             android:exported="true"
             android:windowSoftInputMode="adjustPan"
+            android:screenOrientation="portrait"
             android:theme="@style/Theme.CurrencyExchangeApp.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

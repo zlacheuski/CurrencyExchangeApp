@@ -26,4 +26,9 @@
         <item name="boxStrokeColor">@color/base_color</item>
         <item name="boxStrokeWidth">1dp</item>
     </style>
+
+    <style name="ProgressBarTheme" parent="ThemeOverlay.AppCompat.Light">
+        <item name="colorAccent">@color/base_color</item>
+        <item name="colorPrimary">@color/base_color</item>
+    </style>
 </resources>

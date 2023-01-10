@@ -15,7 +15,6 @@ import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.fragment.findNavController
@@ -25,7 +24,9 @@ import com.example.currencyexchangeapp.R
 import com.example.currencyexchangeapp.databinding.FragmentRateBinding
 import com.example.currencyexchangeapp.db.entity.Rates
 import com.example.currencyexchangeapp.domain.model.states.Resource
+import com.example.currencyexchangeapp.extension.hide
 import com.example.currencyexchangeapp.extension.onSearchTextChanged
+import com.example.currencyexchangeapp.extension.show
 import com.example.currencyexchangeapp.utils.Constants
 import com.example.currencyexchangeapp.utils.IRateAdapter
 import com.example.currencyexchangeapp.utils.permission.Permission
@@ -38,10 +39,6 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -76,6 +73,7 @@ class RateFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        initBinding()
         collectCurrencies()
         collectCurrenciesFromDB()
     }
@@ -84,10 +82,10 @@ class RateFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        initBinding()
         initMenu()
         initMenuProvider()
         initRecyclerView()
+        locationResultLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
         return binding.root
     }
 
@@ -95,8 +93,6 @@ class RateFragment : Fragment() {
         super.onStart()
         showBottomBar()
         hideBackToolbarIcon()
-        locationResultLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
-        Timber.d("****")
     }
 
     private fun showBottomBar() {
@@ -117,6 +113,7 @@ class RateFragment : Fragment() {
         fusedLocationClient.lastLocation
             .addOnSuccessListener { location: Location? ->
                 if (location != null) {
+                    Timber.d("*******")
                     val currentLocation = location.getRateCode()
                     val rateCode = getRateCode(currentLocation)
                     viewModel.addSharedPref(Constants.USER_RATE_NAME, rateCode)
@@ -126,15 +123,16 @@ class RateFragment : Fragment() {
     }
 
     private fun getRateCode(currentLocation: String?) =
-        Currency.getInstance(Locale.getAvailableLocales()
-            .filter { it.country == currentLocation }[0]
+        Currency.getInstance(
+            Locale.getAvailableLocales()
+                .filter { it.country == currentLocation }[0]
         ).currencyCode ?: "USD"
 
     private fun Location.getRateCode(): String? {
         Geocoder(activity).getFromLocation(this.latitude, this.longitude, 1).let {
             if (it.size != 0) {
                 return it[0].countryCode
-            }else{
+            } else {
                 return "US"
             }
         }
@@ -146,17 +144,18 @@ class RateFragment : Fragment() {
             viewModel.updateRateState(rateName, isLiked)
             menuItem?.collapseActionView()
         }
-        override fun addToSharedPreferences(rateName: String, rateValue: Double){
+
+        override fun addToSharedPreferences(rateName: String, rateValue: Double) {
             viewModel.addSharedPref(Constants.RATE_NAME, rateName)
             viewModel.addFloatSharedPref(Constants.RATE, rateValue.toFloat())
         }
 
         override fun getFromSharedPreferences(value: String): String? {
-           return viewModel.getSharedPref(value)
+            return viewModel.getSharedPref(value)
         }
 
         override fun getFloatFromSharedPreferences(value: String): Float {
-           return viewModel.getFloatSharedPref(value)
+            return viewModel.getFloatSharedPref(value)
         }
     }
 
@@ -165,12 +164,10 @@ class RateFragment : Fragment() {
     }
 
     private fun searchCurrency(query: String) {
-        GlobalScope.launch(Dispatchers.IO) {
+        lifecycleScope.launch(Dispatchers.IO) {
             viewModel.getRatesByName(query).let { allRates ->
                 withContext(Dispatchers.Main) {
-                    currencyAdapter?.addDataToAdapter(allRates.map {
-                        Rates(it.rateName, it.rateValue, it.isLiked)
-                    })
+                    currencyAdapter?.addDataToAdapter(allRates)
                 }
             }
         }
@@ -219,38 +216,33 @@ class RateFragment : Fragment() {
         }
     }
 
-    private fun collectCurrenciesFromDB() = viewModel
-        .dbRates
-        .onEach { currencyAdapter?.addDataToAdapter(it) }
-        .flowWithLifecycle(lifecycle)
-        .launchIn(lifecycleScope)
-
-    private fun collectCurrenciesFromDB2() {
+    private fun collectCurrenciesFromDB() {
         lifecycleScope.launch {
-            viewModel.dbRates.collect{
-                currencyAdapter?.addDataToAdapter(it)
-            }
+            viewModel.dbRates.collect {
+                    currencyAdapter?.addDataToAdapter(it)
+                }
         }
     }
 
     private fun collectCurrencies() {
-        lifecycleScope.launch {
+        lifecycleScope.launchWhenCreated {
             viewModel.response.collect { state ->
                 when (state) {
                     is Resource.Success -> {
-                        Timber.d("Success: ${state.data.ratesList}")
-                        if (ratesList.isEmpty()) {
-                            viewModel.insertRates(state.data.ratesList)
-                            viewModel.dbRates
-                        } else {
-                            viewModel.updateRates(state.data.ratesList)
-                            ratesList.filter { it.isLiked }.forEach {
-                                viewModel.updateRateState(it.rateName, true)
+                        binding.progressBar.hide()
+                        Timber.d("Success: ${state.data}")
+                            if (ratesList.isEmpty()) {
+                                viewModel.insertRates(state.data.ratesList)
+                            } else {
+                                mutableListOf<Rates>().let { list->
+                                    list.addAll(state.data.ratesList)
+                                    list.attachLikesToList(ratesList)
+                                    viewModel.insertRates(list)
                             }
-                            viewModel.dbRates
                         }
                     }
                     is Resource.Progress -> {
+                        binding.progressBar.show()
                         Timber.d("Progress")
                     }
                     is Resource.Error -> {
@@ -261,6 +253,13 @@ class RateFragment : Fragment() {
         }
     }
 
+    private fun List<Rates>.attachLikesToList(historyList: List<Rates>) {
+        this.forEach { it2 ->
+            if (it2.rateName in historyList.filter { it.isLiked }.map { it.rateName }) {
+                it2.isLiked = true
+            }
+        }
+    }
     private fun hideBackToolbarIcon() {
         (activity as BaseRateActivity).hideBackToolbarIcon()
     }
