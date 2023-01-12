@@ -26,6 +26,9 @@ interface IRateDAO {
     @Query("SELECT * FROM Rates WHERE rateName LIKE '%'||:searchQuery||'%' ORDER BY isLiked DESC;")
     fun getRatesByName(searchQuery: String): List<Rates>
 
+    @Query("SELECT * FROM Rates WHERE isLiked=1 AND rateName LIKE '%'||:searchQuery||'%'")
+    fun getLikedRatesByName(searchQuery: String): List<Rates>
+
     @Insert(onConflict = REPLACE)
     fun insertRate(ratesList: List<Rates>)
 

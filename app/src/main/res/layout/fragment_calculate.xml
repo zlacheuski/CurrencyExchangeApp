@@ -76,8 +76,8 @@
         android:layout_marginHorizontal="64dp"
         android:layout_marginTop="12dp"
         android:clickable="false"
-        android:hint="@string/rate_value_hint"
         android:focusable="false"
+        android:hint="@string/rate_value_hint"
         app:hintTextColor="@color/base_color"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -86,9 +86,9 @@
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/rate_et"
             android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:clickable="false"
             android:focusable="false"
-            android:layout_height="wrap_content"
             android:inputType="number" />
     </com.google.android.material.textfield.TextInputLayout>
 

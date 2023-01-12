@@ -8,10 +8,10 @@ import retrofit2.Response
 
 open class BaseRepository {
 
-    open suspend fun <T> callOrError(funs: Deferred<Response<T>>): Flow<Resource<T>> = flow {
+    open suspend fun <T> callOrError(func: Deferred<Response<T>>): Flow<Resource<T>> = flow {
         emit(Resource.Progress())
         try {
-            funs.await().let { resp ->
+            func.await().let { resp ->
                 resp.body().let { body ->
                     if (body != null) {
                         emit(Resource.Success(body))

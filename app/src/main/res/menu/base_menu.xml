@@ -2,11 +2,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/currencyFragment"
+        android:id="@+id/rateFragment"
         android:icon="@drawable/ic_currency"
         android:title="@string/all_currencies_title" />
     <item
-        android:id="@+id/myCurrencyFragment"
+        android:id="@+id/myRateFragment"
         android:icon="@drawable/ic_my_currency"
         android:title="@string/my_currencies_title" />
 </menu>

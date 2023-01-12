@@ -3,16 +3,16 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/base_navigation"
-    app:startDestination="@id/currencyFragment">
+    app:startDestination="@id/rateFragment">
 
     <fragment
-        android:id="@+id/currencyFragment"
+        android:id="@+id/rateFragment"
         android:name="com.example.currencyexchangeapp.ui.fragment.RateFragment"
         android:label="fragment_curency"
         tools:layout="@layout/fragment_rate" />
 
     <fragment
-        android:id="@+id/myCurrencyFragment"
+        android:id="@+id/myRateFragment"
         android:name="com.example.currencyexchangeapp.ui.fragment.MyRateFragment"
         android:label="fragment_my_curency"
         tools:layout="@layout/fragment_liked_rate" />

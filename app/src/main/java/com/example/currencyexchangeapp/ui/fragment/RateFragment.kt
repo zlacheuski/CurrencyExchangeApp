@@ -71,6 +71,27 @@ class RateFragment : Fragment() {
             }
         }
 
+    private val menuProvider = object : MenuProvider {
+
+        override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+            menu.clear()
+            menuInflater.inflate(R.menu.toolbar_menu, menu)
+        }
+
+        override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+            return when (menuItem.itemId) {
+                R.id.searchItem -> {
+                    this@RateFragment.menuItem = menuItem
+                    (menuItem.actionView as SearchView).onSearchTextChanged {
+                        searchCurrency(query = it)
+                    }
+                    true
+                }
+                else -> true
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         initBinding()
@@ -113,7 +134,6 @@ class RateFragment : Fragment() {
         fusedLocationClient.lastLocation
             .addOnSuccessListener { location: Location? ->
                 if (location != null) {
-                    Timber.d("*******")
                     val currentLocation = location.getRateCode()
                     val rateCode = getRateCode(currentLocation)
                     viewModel.addSharedPref(Constants.USER_RATE_NAME, rateCode)
@@ -173,27 +193,18 @@ class RateFragment : Fragment() {
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        Timber.d("===============")
+    }
+
+    override fun onStop() {
+        super.onStop()
+        menuHost?.removeMenuProvider(menuProvider)
+    }
+
     private fun initMenuProvider() {
-        menuHost?.addMenuProvider(object : MenuProvider {
-
-            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                menu.clear()
-                menuInflater.inflate(R.menu.toolbar_menu, menu)
-            }
-
-            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                return when (menuItem.itemId) {
-                    R.id.searchItem -> {
-                        this@RateFragment.menuItem = menuItem
-                        (menuItem.actionView as SearchView).onSearchTextChanged {
-                            searchCurrency(query = it)
-                        }
-                        true
-                    }
-                    else -> true
-                }
-            }
-        })
+        menuHost?.addMenuProvider(menuProvider)
     }
 
     private fun initRecyclerView() {

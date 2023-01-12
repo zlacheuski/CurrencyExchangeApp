@@ -32,6 +32,8 @@ class RateViewModel @Inject constructor(
 
     fun getRatesByName(searchQuery: String) = repository.getRatesByName(searchQuery)
 
+    fun getLikedRatesByName(searchQuery: String) = repository.getLikedRatesByName(searchQuery)
+
     fun updateRateState(rateName: String, isLiked: Boolean) {
         viewModelScope.launch(Dispatchers.IO) { repository.updateRateState(rateName, isLiked) }
     }
@@ -58,9 +60,5 @@ class RateViewModel @Inject constructor(
 
     fun getFloatSharedPref(tag: String): Float {
         return sp.getFloatPreference(tag)
-    }
-
-    fun getAllPreferences(): Map<String, *>? {
-        return sp.allPreferences
     }
 }

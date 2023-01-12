@@ -15,7 +15,7 @@ class RateRepositoryImpl @Inject constructor(
 ) : RateRepository,RateDBRepository, BaseRepository() {
 
     override suspend fun getLatestCurrency(rateName: String): Flow<Resource<LatestRateModel>> =
-        callOrError(api.getLatestRate(rateName))
+        callOrError(api.getLatestRateAsync(rateName))
 
     override fun getRates(): Flow<List<Rates>> = dbDao.getRates()
 
@@ -25,6 +25,9 @@ class RateRepositoryImpl @Inject constructor(
 
     override fun updateRateState(rateName: String, isLiked: Boolean) =
         dbDao.updateRateState(rateName, isLiked)
+
+    override fun getLikedRatesByName(searchQuery: String): List<Rates> =
+        dbDao.getLikedRatesByName(searchQuery)
 
     override fun getRatesByName(searchQuery: String): List<Rates> =
         dbDao.getRatesByName(searchQuery)
