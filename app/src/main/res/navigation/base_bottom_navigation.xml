@@ -13,7 +13,7 @@
 
     <fragment
         android:id="@+id/myCurrencyFragment"
-        android:name="com.example.currencyexchangeapp.ui.fragment.LikedRateFragment"
+        android:name="com.example.currencyexchangeapp.ui.fragment.MyRateFragment"
         android:label="fragment_my_curency"
         tools:layout="@layout/fragment_liked_rate" />
 

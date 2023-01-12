@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface RateDBRepository {
     fun getRates(): Flow<List<Rates>>
+    fun getLikedRates(): Flow<List<Rates>>
     fun getRatesNotFlow(): List<Rates>
     fun updateRateState(rateName: String, isLiked: Boolean)
     fun getRatesByName(searchQuery: String): List<Rates>

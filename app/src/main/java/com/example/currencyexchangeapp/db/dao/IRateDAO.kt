@@ -14,6 +14,9 @@ interface IRateDAO {
     @Query("SELECT * FROM Rates ORDER BY isLiked DESC;")
     fun getRates(): Flow<List<Rates>>
 
+    @Query("SELECT * FROM Rates WHERE isLiked=1 ORDER BY isLiked DESC;")
+    fun getLikedRates(): Flow<List<Rates>>
+
     @Query("SELECT * FROM Rates ORDER BY isLiked DESC;")
     fun getRatesNotFlow(): List<Rates>
 

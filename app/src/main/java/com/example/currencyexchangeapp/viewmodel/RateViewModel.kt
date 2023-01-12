@@ -24,7 +24,7 @@ class RateViewModel @Inject constructor(
     val response: StateFlow<Resource<LatestRateModel>>
         get() = _response
 
-    val dbRates = repository.getRates()
+    var dbRates = repository.getRates()
 
     fun getRates(rateName: String = "USD") {
         viewModelScope.launch { repository.getLatestCurrency(rateName).collect { _response.emit(it) } }
@@ -36,9 +36,7 @@ class RateViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) { repository.updateRateState(rateName, isLiked) }
     }
 
-    fun updateRates(ratesList: List<Rates>) {
-        viewModelScope.launch(Dispatchers.IO) { repository.updateRates(ratesList) }
-    }
+    fun getLikedRatesDB() = repository.getLikedRates()
 
     fun getRatesDB() = repository.getRatesNotFlow()
 
@@ -52,10 +50,6 @@ class RateViewModel @Inject constructor(
 
     fun addFloatSharedPref(tag: String, value: Float) {
         sp.addFloatPreference(tag, value)
-    }
-
-    fun removeSharedPref(tag: String) {
-        sp.remove(tag)
     }
 
     fun getSharedPref(tag: String): String? {

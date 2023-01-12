@@ -19,6 +19,8 @@ class RateRepositoryImpl @Inject constructor(
 
     override fun getRates(): Flow<List<Rates>> = dbDao.getRates()
 
+    override fun getLikedRates(): Flow<List<Rates>> = dbDao.getLikedRates()
+
     override fun getRatesNotFlow(): List<Rates> = dbDao.getRatesNotFlow()
 
     override fun updateRateState(rateName: String, isLiked: Boolean) =
