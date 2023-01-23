@@ -24,8 +24,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import timber.log.Timber
-
 
 @AndroidEntryPoint
 class MyRateFragment : Fragment() {
@@ -45,11 +43,9 @@ class MyRateFragment : Fragment() {
         override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
             return when (menuItem.itemId) {
                 R.id.searchItem -> {
-                    Timber.d("******6666")
                     this@MyRateFragment.menuItem = menuItem
                     (menuItem.actionView as SearchView).onSearchTextChanged {
                         searchCurrency(query = it)
-                        Timber.d("******6666")
                     }
                     true
                 }

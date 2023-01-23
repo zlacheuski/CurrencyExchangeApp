@@ -104,10 +104,14 @@ class RateFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         initMenu()
-        initMenuProvider()
         initRecyclerView()
         locationResultLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
         return binding.root
+    }
+
+    override fun onResume() {
+        super.onResume()
+        initMenuProvider()
     }
 
     override fun onStart() {

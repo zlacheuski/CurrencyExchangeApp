@@ -18,6 +18,16 @@ class CalculateFragment : Fragment() {
 
     private lateinit var binding: FragmentCalculateBinding
     private var menuHost: MenuHost? = null
+    private val menuProvider = object : MenuProvider {
+
+        override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+            menu.clear()
+        }
+
+        override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+            return true
+        }
+    }
     private val rateViewModel : RateViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -25,7 +35,6 @@ class CalculateFragment : Fragment() {
         hideNavigationBar()
         showBackToolbarIcon()
         setToolbarOnBackPressed()
-        initMenu()
     }
 
     override fun onCreateView(
@@ -37,9 +46,19 @@ class CalculateFragment : Fragment() {
         return binding.root
     }
 
+    override fun onResume() {
+        super.onResume()
+        initMenu()
+    }
+
     private fun initMenu() {
         menuHost = requireActivity()
         initMenuProvider()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        destroyMenuProvider()
     }
 
     private fun initBinding() {
@@ -78,15 +97,10 @@ class CalculateFragment : Fragment() {
     private fun baseCurrencyActivity() = (activity as BaseRateActivity)
 
     private fun initMenuProvider() {
-        menuHost?.addMenuProvider(object : MenuProvider {
+        menuHost?.addMenuProvider(menuProvider)
+    }
 
-            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                menu.clear()
-            }
-
-            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                return true
-            }
-        })
+    private fun destroyMenuProvider() {
+        menuHost?.removeMenuProvider(menuProvider)
     }
 }
